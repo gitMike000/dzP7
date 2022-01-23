@@ -1,0 +1,225 @@
+diff --git a/include/MyTools.h b/include/MyTools.h
+index 70a2b94..5e0ccc3 100644
+--- a/include/MyTools.h
++++ b/include/MyTools.h
+@@ -1,17 +1,43 @@
+-#pragma once
++//#pragma once
++
++#ifndef MYTOOLS_H
++#define MYTOOLS_H
+ 
+ #include <string>
++#include <cstring>
++
++#include <fstream>
++#include <iostream>
+ 
+ namespace MyTools {
+ 
+-void OpenLogFile(const std::string& FN);
++class FileLogger {
++
++public:
++    FileLogger() {
++        OpenLogFile("log.txt");
++    };
++
++    ~FileLogger() {
++        CloseLogFile();
++    };
+ 
+-void CloseLogFile();
++    void OpenLogFile(const std::string& FN);
+ 
+-void WriteToLog(const std::string& str);
++    void CloseLogFile();
+ 
+-void WriteToLog(const std::string& str, int n);
++    void WriteToLog(const std::string& str);
+ 
+-void WriteToLog(const std::string& str, double d);
++    void WriteToLog(const std::string& str, int n);
++
++    void WriteToLog(const std::string& str, double d);
++
++private:
++    std::ofstream logOut;
++};
++
++static FileLogger logger;
+ 
+ }; // namespace MyTools
++
++#endif //MYTOOLS_H
+diff --git a/src/MyTools.cpp b/src/MyTools.cpp
+index 4fc44ea..64ea96b 100644
+--- a/src/MyTools.cpp
++++ b/src/MyTools.cpp
+@@ -12,16 +12,6 @@
+ 
+ namespace MyTools {
+ 
+-std::ofstream logOut;
+-
+-void OpenLogFile(const std::string &FN) { logOut.open(FN, std::ios_base::out); }
+-
+-void CloseLogFile() {
+-  if (logOut.is_open()) {
+-    logOut.close();
+-  }
+-}
+-
+ std::string GetCurDateTime() {
+   auto cur = std::chrono::system_clock::now();
+   time_t time = std::chrono::system_clock::to_time_t(cur);
+@@ -29,19 +19,27 @@ std::string GetCurDateTime() {
+   return std::string(buf);
+ }
+ 
+-void WriteToLog(const std::string &str) {
++void FileLogger::OpenLogFile(const std::string &FN) { logOut.open(FN, std::ios_base::out); }
++
++void FileLogger::CloseLogFile() {
++  if (logOut.is_open()) {
++    logOut.close();
++  }
++}
++
++void FileLogger::WriteToLog(const std::string &str) {
+   if (logOut.is_open()) {
+     logOut << GetCurDateTime() << " - " << str << std::endl;
+   }
+ }
+ 
+-void WriteToLog(const std::string &str, int n) {
++void FileLogger::WriteToLog(const std::string &str, int n) {
+   if (logOut.is_open()) {
+     logOut << GetCurDateTime() << " - " << str << n << std::endl;
+   }
+ }
+ 
+-void WriteToLog(const std::string &str, double d) {
++void FileLogger::WriteToLog(const std::string &str, double d) {
+   if (logOut.is_open()) {
+     logOut << GetCurDateTime() << " - " << str << d << std::endl;
+   }
+diff --git a/src/SBomber.cpp b/src/SBomber.cpp
+index 5336247..650528f 100644
+--- a/src/SBomber.cpp
++++ b/src/SBomber.cpp
+@@ -13,7 +13,7 @@
+ SBomber::SBomber()
+   : exitFlag(false), startTime(0), finishTime(0), deltaTime(0), passedTime(0),
+     fps(0), bombsNumber(10), score(0) {
+-  MyTools::WriteToLog(std::string(__func__) + " was invoked");
++  MyTools::logger.WriteToLog(std::string(__func__) + " was invoked");
+ 
+   Plane* p = new Plane;
+   p->SetDirection(1, 0.1);
+@@ -79,7 +79,7 @@ SBomber::~SBomber() {
+ }
+ 
+ void SBomber::MoveObjects() {
+-  MyTools::WriteToLog(std::string(__func__) + " was invoked");
++  MyTools::logger.WriteToLog(std::string(__func__) + " was invoked");
+ 
+   for (size_t i = 0; i < vecDynamicObj.size(); i++) {
+     if (vecDynamicObj[i] != nullptr) {
+@@ -89,7 +89,7 @@ void SBomber::MoveObjects() {
+ };
+ 
+ void SBomber::CheckObjects() {
+-  MyTools::WriteToLog(std::string(__func__) + " was invoked");
++  MyTools::logger.WriteToLog(std::string(__func__) + " was invoked");
+ 
+   CheckPlaneAndLevelGUI();
+   CheckBombsAndGround();
+@@ -225,7 +225,7 @@ void SBomber::ProcessKBHit() {
+     c = getchar();
+   }
+ 
+-  MyTools::WriteToLog(std::string(__func__) + " was invoked. key = ", c);
++  MyTools::logger.WriteToLog(std::string(__func__) + " was invoked. key = ", c);
+ 
+   switch (c) {
+ 
+@@ -255,7 +255,7 @@ void SBomber::ProcessKBHit() {
+ }
+ 
+ void SBomber::DrawFrame() {
+-  MyTools::WriteToLog(std::string(__func__) + " was invoked");
++  MyTools::logger.WriteToLog(std::string(__func__) + " was invoked");
+ 
+   for (size_t i = 0; i < vecDynamicObj.size(); i++) {
+     if (vecDynamicObj[i] != nullptr) {
+@@ -276,7 +276,7 @@ void SBomber::DrawFrame() {
+ }
+ 
+ void SBomber::TimeStart() {
+-  MyTools::WriteToLog(std::string(__func__) + " was invoked");
++  MyTools::logger.WriteToLog(std::string(__func__) + " was invoked");
+   startTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+       std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+ }
+@@ -287,12 +287,12 @@ void SBomber::TimeFinish() {
+   deltaTime = uint16_t(finishTime - startTime);
+   passedTime += deltaTime;
+ 
+-  MyTools::WriteToLog(std::string(__func__) + " deltaTime = ", (int)deltaTime);
++  MyTools::logger.WriteToLog(std::string(__func__) + " deltaTime = ", (int)deltaTime);
+ }
+ 
+ void SBomber::DropBomb() {
+   if (bombsNumber > 0) {
+-    MyTools::WriteToLog(std::string(__func__) + " was invoked");
++    MyTools::logger.WriteToLog(std::string(__func__) + " was invoked");
+ 
+     Plane* pPlane = FindPlane();
+     double x = pPlane->GetX() + 4;
+diff --git a/src/ScreenSingleton.cpp b/src/ScreenSingleton.cpp
+index 7e7eea7..fe5000c 100644
+--- a/src/ScreenSingleton.cpp
++++ b/src/ScreenSingleton.cpp
+@@ -33,15 +33,15 @@ IScreen& getInternalInstance() {
+ class ScreenSingletonProxy : public IScreen {
+ public:
+   virtual void ClrScr() override {
+-    MyTools::WriteToLog("ClrScr invoke begin");
++    MyTools::logger.WriteToLog("ClrScr invoke begin");
+     getInternalInstance().ClrScr();
+-    MyTools::WriteToLog("ClrScr invoke end");
++    MyTools::logger.WriteToLog("ClrScr invoke end");
+   }
+   virtual void GotoXY(double x, double y) override {
+ 
+-    MyTools::WriteToLog("GotoXY invoke begin");
++    MyTools::logger.WriteToLog("GotoXY invoke begin");
+     getInternalInstance().GotoXY(x, y);
+-    MyTools::WriteToLog("GotoXY invoke end");
++    MyTools::logger.WriteToLog("GotoXY invoke end");
+   }
+   virtual uint16_t GetMaxX() override {
+     return getInternalInstance().GetMaxX();
+diff --git a/src/main.cpp b/src/main.cpp
+index 2d164b6..7d989d5 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -38,7 +38,7 @@ int _kbhit() {
+ 
+ 
+ int main(void) {
+-  MyTools::OpenLogFile("log.txt");
++//  MyTools::OpenLogFile("log.txt");
+ 
+   SBomber game;
+ 
+@@ -59,7 +59,7 @@ int main(void) {
+ 
+   } while (!game.GetExitFlag());
+ 
+-  MyTools::CloseLogFile();
++//  MyTools::CloseLogFile();
+ 
+   return 0;
+ }
