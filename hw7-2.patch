@@ -1,0 +1,108 @@
+diff --git a/include/Pimpl_Sbomber.h b/include/Pimpl_Sbomber.h
+new file mode 100644
+index 0000000..3f590f7
+--- /dev/null
++++ b/include/Pimpl_Sbomber.h
+@@ -0,0 +1,27 @@
++#ifndef PIMPL_SBOMBER_H
++#define PIMPL_SBOMBER_H
++
++class SBomber;
++
++class Pimpl_Sbomber {
++public:
++
++    Pimpl_Sbomber();
++    ~Pimpl_Sbomber();
++
++    bool GetExitFlag() const;
++    void ProcessKBHit();
++    void TimeStart();
++    void TimeFinish();
++
++    void DrawFrame();
++    void MoveObjects();
++    void CheckObjects();
++
++//private:
++
++    SBomber* sb;
++
++};
++
++#endif // PIMPL_SBOMBER_H
+diff --git a/include/SBomber.h b/include/SBomber.h
+index 3ce1b9c..fc2ca54 100644
+--- a/include/SBomber.h
++++ b/include/SBomber.h
+@@ -15,7 +15,8 @@ public:
+     SBomber();
+     ~SBomber();
+     
+-    inline bool GetExitFlag() const { return exitFlag; }
++    //inline bool GetExitFlag() const { return exitFlag; }
++    bool GetExitFlag() const;
+ 
+     void ProcessKBHit();
+     void TimeStart();
+@@ -50,4 +51,4 @@ private:
+     uint64_t startTime, finishTime, passedTime;
+     uint16_t bombsNumber, deltaTime, fps;
+     int16_t score;
+-};
+\ No newline at end of file
++};
+diff --git a/src/Pimpl_SBomber.cpp b/src/Pimpl_SBomber.cpp
+new file mode 100644
+index 0000000..74f4217
+--- /dev/null
++++ b/src/Pimpl_SBomber.cpp
+@@ -0,0 +1,16 @@
++#include "include/SBomber.h"
++#include "include/Pimpl_Sbomber.h"
++
++Pimpl_Sbomber::Pimpl_Sbomber(): sb (new SBomber()) {};
++Pimpl_Sbomber::~Pimpl_Sbomber() {delete sb;sb=0;};
++
++bool Pimpl_Sbomber::GetExitFlag() const {return sb->GetExitFlag();};
++
++void Pimpl_Sbomber::ProcessKBHit() {sb->ProcessKBHit();};
++
++void Pimpl_Sbomber::TimeStart() {sb->TimeStart();};
++void Pimpl_Sbomber::TimeFinish() {sb->TimeFinish();};
++
++void Pimpl_Sbomber::DrawFrame() {sb->DrawFrame();};
++void Pimpl_Sbomber::MoveObjects() {sb->MoveObjects();};
++void Pimpl_Sbomber::CheckObjects() {sb->CheckObjects();};
+diff --git a/src/SBomber.cpp b/src/SBomber.cpp
+index 4c0eb99..293831a 100644
+--- a/src/SBomber.cpp
++++ b/src/SBomber.cpp
+@@ -309,3 +309,5 @@ void SBomber::DropBomb() {
+     score -= Bomb::BombCost;
+   }
+ }
++
++bool SBomber::GetExitFlag() const { return exitFlag; }
+diff --git a/src/main.cpp b/src/main.cpp
+index e4a2756..6dad5fd 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -1,4 +1,5 @@
+-﻿#include "include/SBomber.h"
++﻿//#include "include/SBomber.h"
++#include "include/Pimpl_Sbomber.h"
+ #include "include/MyTools.h"
+ #include "include/ScreenSingleton.h"
+ 
+@@ -34,7 +35,9 @@ int main(void)
+ {
+     MyTools::FileLoggerSingletone::getInstance().OpenLogFile("log.txt");
+ 
+-    SBomber game;
++    //SBomber game;
++    Pimpl_Sbomber game;
++
+ 
+     do
+     {
